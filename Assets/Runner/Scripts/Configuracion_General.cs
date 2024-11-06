@@ -31,7 +31,6 @@ public class Configuracion_General : MonoBehaviour
     public float puntos = 0;
     public float tiempo;
     static public int cantPlayers = 1;
-    static TiposDeDificultad dificultad; //La pueden utilizar como condición para variar la dificultad.
     public int vidas;
     public float velocidad;
     
@@ -59,23 +58,7 @@ public class Configuracion_General : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (scoreText != null)
-        {
-            scoreText.text = "Puntaje: " + ((float)puntos).ToString();
-        }
-        else
-        {
-            Debug.Log("No hay un text asignado para el puntaje");
-        }
-        if (lifeText != null)
-        {
-            lifeText.text = "Vidas: " + ((int)vidas).ToString();
-        }
-        else
-        {
-            Debug.Log("No hay un text asignado para la vida");
-        }
-
+        
         if (perdiste)
         {
             print("PERDISTE!");
@@ -86,7 +69,5 @@ public class Configuracion_General : MonoBehaviour
             print("GANASTE!");
             SceneManager.LoadScene(escenaganaste);
         }
-
-
     }
 }

@@ -1,6 +1,6 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class Player : MonoBehaviour
 {
@@ -28,11 +28,13 @@ public class Player : MonoBehaviour
     [Header("Configuración de Pared")]
     [SerializeField] private float stopPositionZ = 300f; // Posición en Z donde el jugador se detendrá
     private bool canMoveForward = true; // Controla si el jugador puede avanzar después de la pared
+    public TextMeshProUGUI inmunityText; 
 
     private void Start()
     {
         life = config.vidas;
         speed = config.velocidad;
+
         if (carriles)
         {
             if (cantCarriles == 2)
@@ -47,6 +49,12 @@ public class Player : MonoBehaviour
             {
                 Debug.Log("Estás intentando usar " + cantCarriles + ". El permitido es tres o dos. Para otra configuración hay que programarlo.");
             }
+        }
+
+        // Asegúrate de que el texto de inmunidad esté inicialmente desactivado
+        if (inmunityText != null)
+        {
+            inmunityText.gameObject.SetActive(false);
         }
     }
 
@@ -128,7 +136,7 @@ public class Player : MonoBehaviour
 
     private void BreakWall()
     {
-        WallObstacle wall = Object.FindFirstObjectByType<WallObstacle>();
+        WallObstacle wall = FindFirstObjectByType<WallObstacle>();
         if (wall != null)
         {
             wall.BreakWall(); // Llama al método en el script de la pared para "romperla"
@@ -180,20 +188,38 @@ public class Player : MonoBehaviour
         }
     }
 
-    // Nueva función para activar inmunidad e imprimir tiempo restante
+    // Nueva función para activar inmunidad e imprimir tiempo restante en el Canvas
     public IEnumerator ActivarInmunidad(float duracion)
     {
         inmunity = true; // Activar la inmunidad
+
+        // Activa el texto de inmunidad en el Canvas
+        if (inmunityText != null)
+        {
+            inmunityText.gameObject.SetActive(true);
+        }
+
         float tiempoRestante = duracion;
 
         while (tiempoRestante > 0)
         {
-            Debug.Log("Tiempo de inmunidad restante: " + tiempoRestante.ToString("F1") + " segundos");
-            yield return new WaitForSeconds(0.1f); // Actualiza el tiempo restante cada 0.1 segundos
+            if (inmunityText != null)
+            {
+                // Actualiza el texto con el tiempo restante de inmunidad
+                inmunityText.text = "Inmunidad activa: " + tiempoRestante.ToString("F1") + " segundos";
+            }
+            yield return new WaitForSeconds(0.1f);
             tiempoRestante -= 0.1f;
         }
 
-        inmunity = false; // Desactivar la inmunidad
+        inmunity = false;
+
+        // Desactiva el texto de inmunidad al finalizar
+        if (inmunityText != null)
+        {
+            inmunityText.gameObject.SetActive(false);
+        }
+
         Debug.Log("Inmunidad desactivada");
     }
 
