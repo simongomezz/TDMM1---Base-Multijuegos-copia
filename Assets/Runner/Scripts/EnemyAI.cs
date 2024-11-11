@@ -61,11 +61,11 @@ public class EnemyAI : MonoBehaviour
             life -= _dmg;
             if (life <= 0)
             {
-                destroyMe();
                 giveScore(score);
+                destroyMe();
             }
         }
-        else if (life <= 0)
+        else
         {
             destroyMe();
         }
@@ -73,18 +73,32 @@ public class EnemyAI : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.tag == "Player")
+        if (other.CompareTag("Player"))
         {
             Player player = other.GetComponent<Player>();
             if (player != null)
             {
-                player.Damage(dmg);
-                life--;
-            }
+                // Solo inflige daño si el jugador no está atrapado e inmune
+                if (!player.isCaught && !player.inmunity)
+                {
+                    player.Damage(dmg);
+                }
+                else
+                {
+                    Debug.Log("El jugador está inmune o atrapado, no se aplica daño.");
+                }
+                
+                // Decrementa la vida del enemigo si es necesario
+                if (life > 1)
+                {
+                    life--;
+                }
 
-            if (life <= 0)
-            {
-                destroyMe();
+                if (life <= 0)
+                {
+                    giveScore(score);
+                    destroyMe();
+                }
             }
         }
     }
@@ -103,17 +117,11 @@ public class EnemyAI : MonoBehaviour
 
     private void destroyMe()
     {
-        if (SpawnManager.activeEnemies.Count > 0)
+        // Remueve al enemigo de la lista de enemigos activos
+        if (SpawnManager.activeEnemies.Contains(this.gameObject))
         {
-            for (int i = 0; i < SpawnManager.activeEnemies.Count; i++)
-            {
-                if (SpawnManager.activeEnemies[i].transform.position == this.gameObject.transform.position)
-                {
-                    SpawnManager.activeEnemies.Remove(SpawnManager.activeEnemies[i]);
-                    Destroy(this.gameObject);
-                    break;
-                }
-            }
+            SpawnManager.activeEnemies.Remove(this.gameObject);
         }
+        Destroy(this.gameObject);
     }
 }

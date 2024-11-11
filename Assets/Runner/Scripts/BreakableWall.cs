@@ -88,8 +88,9 @@ public class BreakableWall : MonoBehaviour
 
             if (player != null)
             {
-                player.Damage(1); // Restar 1 vida al jugador
-                Debug.Log("El jugador ha colisionado con el muro y ha perdido vida.");
+                // Activar el estado "atrapado" independientemente de si el jugador tiene inmunidad
+                player.StartCaughtState();
+                Debug.Log("El jugador ha colisionado con el muro y ha sido atrapado.");
             }
 
             // Destruir el muro después de colisionar

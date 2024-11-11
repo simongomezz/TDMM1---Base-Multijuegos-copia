@@ -11,33 +11,13 @@ public class Configuracion_General : MonoBehaviour
    
     static public bool runner3D = false;
     public bool _runner3D = false;
-
-
-   // [Header("Configuraci�n de variables generales")]   
     
-    public enum TiposDeJuego{
-        Runner,
-        Shooter,
-        Sincro
-    }
-    public TiposDeJuego tipodejuego;
-
-    public enum TiposDeDificultad{
-        facil,
-        intermedio,
-        dificil
-    }
-
+    
     public float puntos = 0;
     public float tiempo;
     static public int cantPlayers = 1;
     public int vidas;
     public float velocidad;
-    
-
-    [Header("Configuracion de elementos UI")]
-    [SerializeField] private Text scoreText; //Variable del texto que se visualizara en pantalla en el videojuego. La definimos como publica para poder arrastrar el objeto Text desde el Inspector
-    [SerializeField] private Text lifeText;
 
     [Header("Configuracion de Escenas")]
     public int escenajuego;
@@ -49,13 +29,10 @@ public class Configuracion_General : MonoBehaviour
     void Awake() {
         runner3D = _runner3D;
     }
-    // Start is called before the first frame update
     void Start()
     {
 
     }
-
-    // Update is called once per frame
     void Update()
     {
         

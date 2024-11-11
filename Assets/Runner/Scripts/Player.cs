@@ -26,9 +26,17 @@ public class Player : MonoBehaviour
     [SerializeField] private Configuracion_General config;
 
     [Header("Configuración de Pared")]
-    [SerializeField] private float stopPositionZ = 300f; // Posición en Z donde el jugador se detendrá
-    private bool canMoveForward = true; // Controla si el jugador puede avanzar después de la pared
-    public TextMeshProUGUI inmunityText; 
+    [SerializeField] private float stopPositionZ = 300f;
+    private bool canMoveForward = true;
+    public TextMeshProUGUI inmunityText;
+
+    [Header("Liberación de Enemigo")]
+    public bool isCaught = false;
+    private int keyPressCount = 0;
+    private float releaseTimeLimit = 3.0f;
+    private float releaseTimer;
+    private int requiredKeyPresses = 3;
+    public TextMeshProUGUI caughtText;
 
     private void Start()
     {
@@ -51,16 +59,20 @@ public class Player : MonoBehaviour
             }
         }
 
-        // Asegúrate de que el texto de inmunidad esté inicialmente desactivado
-        if (inmunityText != null)
-        {
-            inmunityText.gameObject.SetActive(false);
-        }
+        if (inmunityText != null) inmunityText.gameObject.SetActive(false);
+        if (caughtText != null) caughtText.gameObject.SetActive(false);
     }
 
     private void Update()
     {
-        Movement();
+        if (isCaught)
+        {
+            HandleCaughtState();
+        }
+        else
+        {
+            Movement();
+        }
     }
 
     private void Movement()
@@ -114,7 +126,6 @@ public class Player : MonoBehaviour
             }
         }
 
-        // Control de movimiento automático en el eje Z
         if (autoPilot && canMoveForward)
         {
             if (transform.position.z < stopPositionZ)
@@ -129,7 +140,6 @@ public class Player : MonoBehaviour
         }
         else if (!canMoveForward && Input.GetKeyDown(KeyCode.Space))
         {
-            // Si el jugador está detenido frente a la pared y presiona Espacio, intenta "romper" la pared
             BreakWall();
         }
     }
@@ -139,8 +149,8 @@ public class Player : MonoBehaviour
         WallObstacle wall = FindFirstObjectByType<WallObstacle>();
         if (wall != null)
         {
-            wall.BreakWall(); // Llama al método en el script de la pared para "romperla"
-            canMoveForward = true; // Permite al jugador avanzar nuevamente después de romper la pared
+            wall.BreakWall();
+            canMoveForward = true;
             Debug.Log("Pared rota, el jugador puede avanzar.");
         }
         else
@@ -149,11 +159,95 @@ public class Player : MonoBehaviour
         }
     }
 
-    public void OnTriggerEnter(Collider obj)
+    private void HandleCaughtState()
     {
-        Debug.Log("Choqué con algo y su tag es: " + obj.gameObject.tag);
+        releaseTimer -= Time.deltaTime;
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            keyPressCount++;
+            Debug.Log("Presionaste E, conteo: " + keyPressCount);
+        }
+
+        caughtText.text = $"¡Estás atrapado! Presiona E {requiredKeyPresses - keyPressCount} veces más";
+        
+        if (keyPressCount >= requiredKeyPresses)
+        {
+            ReleasePlayer();
+        }
+        else if (releaseTimer <= 0)
+        {
+            LoseGame();
+        }
     }
 
+    private void ReleasePlayer()
+    {
+        isCaught = false;
+        keyPressCount = 0;
+        caughtText.gameObject.SetActive(false);
+        Debug.Log("¡Te has liberado!");
+    }
+
+    private void LoseGame()
+    {
+        config.perdiste = true;
+        Debug.Log("Perdiste el juego porque no te liberaste a tiempo.");
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        // Solo activa el estado atrapado si colisiona con un muro
+        if (other.CompareTag("Wall"))
+        {
+            StartCaughtState();
+            Debug.Log("Colisión con muro, inmunidad ignorada.");
+        }
+        else if (other.CompareTag("Enemy") && !inmunity)
+        {
+            StartCaughtState();
+            Debug.Log("Colisión con enemigo sin inmunidad.");
+        }
+    }
+
+    public void StartCaughtState()
+    {
+        isCaught = true;
+        keyPressCount = 0;
+        releaseTimer = releaseTimeLimit;
+        caughtText.gameObject.SetActive(true);
+        Debug.Log("¡Estás atrapado! Presiona E para liberarte.");
+    }
+
+    public IEnumerator ActivarInmunidad(float duracion)
+    {
+        inmunity = true;
+        if (inmunityText != null) inmunityText.gameObject.SetActive(true);
+
+        float tiempoRestante = duracion;
+
+        while (tiempoRestante > 0)
+        {
+            if (inmunityText != null)
+            {
+                inmunityText.text = "Inmunidad activa: " + tiempoRestante.ToString("F1") + " segundos";
+            }
+            yield return new WaitForSeconds(0.1f);
+            tiempoRestante -= 0.1f;
+        }
+
+        inmunity = false;
+
+        if (inmunityText != null) inmunityText.gameObject.SetActive(false);
+        Debug.Log("Inmunidad desactivada");
+    }
+
+    public void AllowForwardMovement()
+    {
+        canMoveForward = true;
+        Debug.Log("Se ha desbloqueado el avance del jugador.");
+    }
+
+    // Método Damage para ser llamado externamente
     public void Damage(int _dmg)
     {
         if (!inmunity)
@@ -175,6 +269,7 @@ public class Player : MonoBehaviour
         }
     }
 
+    // Método para manejar el movimiento controlado por OSC
     public void moveOSC(float _x)
     {
         transform.Translate(Vector3.right * speed * _x * Time.deltaTime);
@@ -186,47 +281,5 @@ public class Player : MonoBehaviour
         {
             transform.position = new Vector3(-limitX, transform.position.y);
         }
-    }
-
-    // Nueva función para activar inmunidad e imprimir tiempo restante en el Canvas
-    public IEnumerator ActivarInmunidad(float duracion)
-    {
-        inmunity = true; // Activar la inmunidad
-
-        // Activa el texto de inmunidad en el Canvas
-        if (inmunityText != null)
-        {
-            inmunityText.gameObject.SetActive(true);
-        }
-
-        float tiempoRestante = duracion;
-
-        while (tiempoRestante > 0)
-        {
-            if (inmunityText != null)
-            {
-                // Actualiza el texto con el tiempo restante de inmunidad
-                inmunityText.text = "Inmunidad activa: " + tiempoRestante.ToString("F1") + " segundos";
-            }
-            yield return new WaitForSeconds(0.1f);
-            tiempoRestante -= 0.1f;
-        }
-
-        inmunity = false;
-
-        // Desactiva el texto de inmunidad al finalizar
-        if (inmunityText != null)
-        {
-            inmunityText.gameObject.SetActive(false);
-        }
-
-        Debug.Log("Inmunidad desactivada");
-    }
-
-    // Método que permite el avance del jugador después de romper la pared
-    public void AllowForwardMovement()
-    {
-        canMoveForward = true; // Permite el avance nuevamente
-        Debug.Log("Se ha desbloqueado el avance del jugador.");
     }
 }

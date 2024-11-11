@@ -18,15 +18,11 @@ public class BraceletMovement : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player")) // Asegúrate de que el jugador tenga la etiqueta "Player"
+        if (other.CompareTag("Player"))
         {
             Debug.Log("El jugador recogió un brazalete");
-            
-            // Aquí podrías agregar la lógica para incrementar el contador de brazaletes recogidos en el futuro
-
             // Destruir el brazalete una vez recogido
             Destroy(gameObject);
         }
     }
-    
 }
