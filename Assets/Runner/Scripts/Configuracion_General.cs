@@ -23,6 +23,7 @@ public class Configuracion_General : MonoBehaviour
     public int escenajuego;
     public int escenaperdiste;
     public int escenaganaste;
+
     public bool perdiste = false;
     public bool ganaste = false;
 

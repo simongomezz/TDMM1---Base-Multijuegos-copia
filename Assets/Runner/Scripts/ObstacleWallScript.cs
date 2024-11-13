@@ -9,6 +9,9 @@ public class WallObstacle : MonoBehaviour
     private int currentHits = 0;   // Contador de golpes actuales
     private bool requiredHitsSet = false; // Verifica si los golpes necesarios ya han sido establecidos
 
+    private float timeSinceLastHit = 0f;  // Tiempo acumulado desde el último golpe
+    private float maxTimeWithoutBreaking = 10f;  // Tiempo límite de 10 segundos sin romper la pared
+
     private void Start()
     {
         // Encuentra el script de configuración general al iniciar
@@ -22,34 +25,46 @@ public class WallObstacle : MonoBehaviour
 
     private void Update()
     {
-        // Verifica si el jugador ha alcanzado la distancia objetivo de la pared
         Player player = Object.FindFirstObjectByType<Player>();
 
         if (player != null)
         {
             float distanceToPlayer = transform.position.z - player.transform.position.z;
 
-            // Establece el valor de requiredHits cuando el jugador esté cerca (a 15 unidades o menos)
             if (distanceToPlayer <= 15.0f && !requiredHitsSet)
             {
-                player.autoPilot = false;  // Detiene el movimiento automático del jugador
+                player.autoPilot = false;
                 UpdateRequiredHits();
-                requiredHitsSet = true; // Asegura que los golpes necesarios se establezcan solo una vez
+                requiredHitsSet = true;
             }
 
             // Detecta si se ha presionado la barra espaciadora para golpear el muro
             if (Input.GetKeyDown(KeyCode.Space) && requiredHitsSet)
             {
                 currentHits++;
+                timeSinceLastHit = 0f;  // Reinicia el temporizador al recibir un golpe
                 Debug.Log("Golpe recibido. Total de golpes realizados: " + currentHits);
 
                 if (currentHits >= requiredHits)
                 {
-                    BreakWall();  // Llama al método para romper la pared
+                    BreakWall();
                 }
                 else
                 {
                     Debug.Log("Golpes restantes para romper la pared: " + (requiredHits - currentHits));
+                }
+            }
+            else if (requiredHitsSet)
+            {
+                // Incrementa el temporizador si no se está golpeando la pared
+                timeSinceLastHit += Time.deltaTime;
+                
+                // Si el jugador excede el tiempo sin romper la pared, lo atrapa
+                if (timeSinceLastHit >= maxTimeWithoutBreaking)
+                {
+                    player.StartCaughtState();  // Activa el estado atrapado en el jugador
+                    Debug.Log("El jugador ha sido atrapado por permanecer demasiado tiempo frente a la pared.");
+                    timeSinceLastHit = 0f;  // Reinicia el temporizador para evitar múltiples capturas
                 }
             }
         }
@@ -57,7 +72,6 @@ public class WallObstacle : MonoBehaviour
 
     private void UpdateRequiredHits()
     {
-        // Ajusta la cantidad de golpes necesarios según el número de brazaletes recogidos
         if (Bracelet.braceletsCollected >= 9)
         {
             requiredHits = 1;
@@ -71,20 +85,19 @@ public class WallObstacle : MonoBehaviour
             requiredHits = 3;
         }
 
-        Debug.Log("Golpes necesarios para romper la pared: " + requiredHits); // Confirma los golpes necesarios en consola
+        Debug.Log("Golpes necesarios para romper la pared: " + requiredHits);
     }
 
     public void BreakWall()
     {
-        // Restaura el movimiento automático del jugador y destruye la pared
         Player player = Object.FindFirstObjectByType<Player>();
         if (player != null)
         {
             player.autoPilot = true;
-            config.ganaste = true;  // Marca que el jugador ha ganado
+            config.ganaste = true;
             Debug.Log("¡Pared rota y has ganado!");
         }
 
-        Destroy(gameObject);  // Destruye el objeto de la pared
+        Destroy(gameObject);
     }
 }

@@ -32,17 +32,19 @@ public class BreakableWall : MonoBehaviour
     private void Movement()
     {
         // Movimiento del muro en el eje Z
-        if (Configuracion_General.runner3D == false)
+        if (Configuracion_General.runner3D == false) 
         {
-            if (transform.position.y >= -6.0f)
+            // En vez de moverse hacia abajo en y, cambiamos el movimiento en el eje z
+            if (transform.position.z >= -6.0f)
             {
-                transform.Translate(Vector3.down * speed * Time.deltaTime);
+                transform.Translate(Vector3.back * speed * Time.deltaTime);
             }
             else
             {
                 DestroyWall();
             }
         }
+
         else
         {
             if (transform.position.z >= -6.0f)

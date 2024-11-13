@@ -22,6 +22,6 @@ public class InicioJuego : MonoBehaviour
 
     private void CargarEscenaDeJuego()
     {
-        SceneManager.LoadScene("Runner3D");
+        SceneManager.LoadScene("Cinematica");
     }
 }
