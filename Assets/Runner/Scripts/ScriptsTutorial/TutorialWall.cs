@@ -12,7 +12,6 @@ public class TutorialWall : MonoBehaviour
 
     private void Movimiento()
     {
-        // Mueve el muro en el eje Z
         if (transform.position.z >= -6.0f)
         {
             transform.Translate(Vector3.back * speed * Time.deltaTime);
