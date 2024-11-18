@@ -76,7 +76,7 @@ public class SpawnManager : MonoBehaviour
                 float xPosition = (randomLane - 1) * laneWidth;
 
                 float zPosition = player.transform.position.z + Random.Range(minSpawnDistanceZ, maxSpawnDistanceZ);
-                randomPosition = new Vector3(xPosition, -1.5f, zPosition);
+                randomPosition = new Vector3(xPosition, 0.35f, zPosition);
             }
             else
             {

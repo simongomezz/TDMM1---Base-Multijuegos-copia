@@ -20,6 +20,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Runner/Scenes/Cinematica.unity
     guid: 9e8e565d0f35c524ba210e9f90f9ea8c
+  - enabled: 1
+    path: Assets/Runner/Scenes/Tutorial.unity
+    guid: 05abf006e273d414eae3b8159517e932
   - enabled: 0
     path: Assets/prueba juego taller.unity
     guid: 5877d8d13cd66e14ea40fc3351d5afdf

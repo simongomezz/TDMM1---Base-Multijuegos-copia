@@ -75,6 +75,7 @@ public class EnemyAI : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            destroyMe();
             Player player = other.GetComponent<Player>();
             if (player != null)
             {

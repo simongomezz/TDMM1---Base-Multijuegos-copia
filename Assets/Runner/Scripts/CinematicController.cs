@@ -13,7 +13,6 @@ public class CinematicController : MonoBehaviour
 
     private void LoadNextScene()
     {
-        // Cambia a la siguiente escena
-        SceneManager.LoadScene("Runner3D");
+        SceneManager.LoadScene(5);
     }
 }

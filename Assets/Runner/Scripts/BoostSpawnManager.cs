@@ -57,7 +57,7 @@ public class BoostSpawnManager : MonoBehaviour
         // Generar una posición Z aleatoria entre el mínimo y máximo frente al jugador
         float zPosition = playerScript.transform.position.z + Random.Range(minSpawnDistanceZ, maxSpawnDistanceZ);
 
-        return new Vector3(xPosition, -1.5f, zPosition);
+        return new Vector3(xPosition, -0.2f, zPosition);
     }
 
     private int GetUniqueLane()

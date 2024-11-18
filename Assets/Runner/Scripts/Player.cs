@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI; // Necesario para trabajar con UI
 using TMPro;
 
 public class Player : MonoBehaviour
@@ -8,15 +9,12 @@ public class Player : MonoBehaviour
     public bool carriles = false;
     public bool autoPilot = false;
     [HideInInspector] public float[] posCarriles;
-    [SerializeField] private int cantCarriles = 3;
     [SerializeField] private float movementDistance = 6.0f;
 
     public float playerPosition;
-    [SerializeField] private float limitY = -3.5f;
     [SerializeField] private float limitX = 8.10f;
 
     [HideInInspector] public float speed = 8;
-    [SerializeField] private bool puedeVolar = false;
 
     [Header("Configuración de vida")]
     [HideInInspector] public int life = 1;
@@ -30,6 +28,9 @@ public class Player : MonoBehaviour
     private bool canMoveForward = true;
     public TextMeshProUGUI inmunityText;
 
+    [Header("Configuración de inmunidad")]
+    public Image inmunityImage; // Nueva referencia a la imagen de inmunidad
+
     [Header("Liberación de Enemigo")]
     public bool isCaught = false;
     private int keyPressCount = 0;
@@ -38,29 +39,33 @@ public class Player : MonoBehaviour
     private int requiredKeyPresses = 3;
     public TextMeshProUGUI caughtText;
 
+    // movimiento entre carriles
+    public float carrilIzquierdo;
+    public float carrilCentro;
+    public float carrilDerecho;
+    private int carrilActual = 1;
+    public bool primerCambioCarril = false;
+
+    // Variables para el AirMouse
+    private Vector3 previousMousePosition;
+    public float liberationThreshold = 40.0f; // Umbral de distancia de movimiento para liberar al jugador
+
     private void Start()
     {
         life = config.vidas;
         speed = config.velocidad;
 
-        if (carriles)
-        {
-            if (cantCarriles == 2)
-            {
-                posCarriles = new float[3] { -movementDistance, 0, movementDistance };
-            }
-            else if (cantCarriles == 3)
-            {
-                posCarriles = new float[2] { -movementDistance, movementDistance };
-            }
-            else
-            {
-                Debug.Log("Estás intentando usar " + cantCarriles + ". El permitido es tres o dos. Para otra configuración hay que programarlo.");
-            }
-        }
+        // Definir posiciones de los carriles
+        carrilCentro = transform.position.x;
+        carrilIzquierdo = carrilCentro - movementDistance;
+        carrilDerecho = carrilCentro + movementDistance;
 
         if (inmunityText != null) inmunityText.gameObject.SetActive(false);
         if (caughtText != null) caughtText.gameObject.SetActive(false);
+        if (inmunityImage != null) inmunityImage.gameObject.SetActive(false); // Asegurarse de que la imagen está desactivada al inicio
+
+        // Inicializar la posición del AirMouse
+        previousMousePosition = Input.mousePosition;
     }
 
     private void Update()
@@ -73,28 +78,19 @@ public class Player : MonoBehaviour
         {
             Movement();
         }
+
+        // Comprobar si el AirMouse se ha movido significativamente
+        if (DetectMouseMovement())
+        {
+            ReleasePlayer(); // Llamamos correctamente a ReleasePlayer() si la distancia del mouse es suficiente
+        }
     }
 
     private void Movement()
     {
         if (carriles)
         {
-            float playerPosition = transform.position.x;
-
-            if (Input.GetKeyDown(KeyCode.D))
-            {
-                if (playerPosition < posCarriles[1])
-                {
-                    transform.Translate(movementDistance, 0, 0);
-                }
-            }
-            else if (Input.GetKeyDown(KeyCode.A))
-            {
-                if (playerPosition > posCarriles[0])
-                {
-                    transform.Translate(-movementDistance, 0, 0);
-                }
-            }
+            HandleLaneChange();
         }
         else
         {
@@ -108,21 +104,6 @@ public class Player : MonoBehaviour
             else if (transform.position.x < -limitX)
             {
                 transform.position = new Vector3(-limitX, transform.position.y, transform.position.z);
-            }
-
-            if (puedeVolar)
-            {
-                float verticalInput = Input.GetAxis("Vertical");
-                transform.Translate(Vector2.up * speed * verticalInput * Time.deltaTime);
-
-                if (transform.position.y > 0)
-                {
-                    transform.position = new Vector2(transform.position.x, 0);
-                }
-                else if (transform.position.y < limitY)
-                {
-                    transform.position = new Vector2(transform.position.x, limitY);
-                }
             }
         }
 
@@ -141,6 +122,44 @@ public class Player : MonoBehaviour
         else if (!canMoveForward && Input.GetKeyDown(KeyCode.Space))
         {
             BreakWall();
+        }
+    }
+
+    private void HandleLaneChange()
+    {
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            CambiarCarril(0);
+        }
+        else if (Input.GetKeyDown(KeyCode.S))
+        {
+            CambiarCarril(1);
+        }
+        else if (Input.GetKeyDown(KeyCode.D))
+        {
+            CambiarCarril(2);
+        }
+    }
+
+    private void CambiarCarril(int nuevoCarril)
+    {
+        if (nuevoCarril == carrilActual) return;
+
+        carrilActual = nuevoCarril;
+        Vector3 nuevaPosicion = transform.position;
+
+        if (carrilActual == 0)
+            nuevaPosicion.x = carrilIzquierdo;
+        else if (carrilActual == 1)
+            nuevaPosicion.x = carrilCentro;
+        else if (carrilActual == 2)
+            nuevaPosicion.x = carrilDerecho;
+
+        transform.position = nuevaPosicion;
+
+        if (!primerCambioCarril)
+        {
+            primerCambioCarril = true;
         }
     }
 
@@ -172,7 +191,7 @@ public class Player : MonoBehaviour
         
         if (keyPressCount >= requiredKeyPresses)
         {
-            ReleasePlayer();
+            ReleasePlayer(); // Esta es la misma función que se llama cuando se presiona E
         }
         else if (releaseTimer <= 0)
         {
@@ -180,12 +199,17 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void ReleasePlayer()
+    void ReleasePlayer()
     {
         isCaught = false;
         keyPressCount = 0;
-        caughtText.gameObject.SetActive(false);
-        Debug.Log("¡Te has liberado!");
+
+        if (caughtText != null)
+        {
+            caughtText.gameObject.SetActive(false);
+        }
+
+        Debug.Log("¡Te has liberado con el AirMouse!");
     }
 
     private void LoseGame()
@@ -196,7 +220,6 @@ public class Player : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Solo activa el estado atrapado si colisiona con un muro
         if (other.CompareTag("Wall"))
         {
             StartCaughtState();
@@ -221,7 +244,9 @@ public class Player : MonoBehaviour
     public IEnumerator ActivarInmunidad(float duracion)
     {
         inmunity = true;
+
         if (inmunityText != null) inmunityText.gameObject.SetActive(true);
+        if (inmunityImage != null) inmunityImage.gameObject.SetActive(true);
 
         float tiempoRestante = duracion;
 
@@ -238,6 +263,8 @@ public class Player : MonoBehaviour
         inmunity = false;
 
         if (inmunityText != null) inmunityText.gameObject.SetActive(false);
+        if (inmunityImage != null) inmunityImage.gameObject.SetActive(false);
+
         Debug.Log("Inmunidad desactivada");
     }
 
@@ -247,7 +274,6 @@ public class Player : MonoBehaviour
         Debug.Log("Se ha desbloqueado el avance del jugador.");
     }
 
-    // Método Damage para ser llamado externamente
     public void Damage(int _dmg)
     {
         if (!inmunity)
@@ -269,7 +295,6 @@ public class Player : MonoBehaviour
         }
     }
 
-    // Método para manejar el movimiento controlado por OSC
     public void moveOSC(float _x)
     {
         transform.Translate(Vector3.right * speed * _x * Time.deltaTime);
@@ -281,5 +306,20 @@ public class Player : MonoBehaviour
         {
             transform.position = new Vector3(-limitX, transform.position.y);
         }
+    }
+
+    bool DetectMouseMovement()
+    {
+        Vector3 currentMousePosition = Input.mousePosition;
+        float distanceMoved = Vector3.Distance(previousMousePosition, currentMousePosition);
+
+        Debug.Log("El ratón se movió. Distancia: " + distanceMoved);
+
+        if (distanceMoved > liberationThreshold)
+        {
+            previousMousePosition = currentMousePosition;
+            return true;
+        }
+        return false;
     }
 }

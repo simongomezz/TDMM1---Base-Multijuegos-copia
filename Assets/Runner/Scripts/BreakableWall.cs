@@ -8,6 +8,7 @@ public class BreakableWall : MonoBehaviour
     [SerializeField] private float speed = 3.0f; // Velocidad de movimiento en el eje Z
     [SerializeField] private Configuracion_General config;
 
+    private TutorialSpawnManager spawnManager; // Referencia al TutorialSpawnManager
     private TutorialUIController tutorialUIController;
 
     private void Start()
@@ -19,8 +20,11 @@ public class BreakableWall : MonoBehaviour
             config = gm.GetComponent<Configuracion_General>();
         }
 
-        // Buscar el controlador del UI del tutorial
-        tutorialUIController = GameObject.FindObjectOfType<TutorialUIController>();
+        // Buscar el TutorialSpawnManager usando el método actualizado
+        spawnManager = Object.FindAnyObjectByType<TutorialSpawnManager>();
+
+        // Buscar el TutorialUIController usando el método actualizado
+        tutorialUIController = Object.FindAnyObjectByType<TutorialUIController>();
     }
 
     private void Update()
@@ -36,8 +40,7 @@ public class BreakableWall : MonoBehaviour
 
     private void Movement()
     {
-        // Movimiento del muro en el eje Z
-        if (Configuracion_General.runner3D == false) 
+        if (Configuracion_General.runner3D == false)
         {
             if (transform.position.z >= -6.0f)
             {
@@ -74,45 +77,50 @@ public class BreakableWall : MonoBehaviour
 
     private void BreakWall()
     {
-        // Destruir el muro
         Destroy(gameObject);
         Debug.Log("El jugador ha roto el muro manualmente.");
 
-        // Ocultar la segunda imagen si el jugador rompe el muro
         if (tutorialUIController != null)
         {
             tutorialUIController.OcultarSegundaImagen();
         }
-    }
 
-    private void DestroyWall()
-    {
-        // Aquí destruyes el muro cuando se sale del área visible o cuando su vida es 0
-        Destroy(gameObject);
+        // Invocar spawn de enemigos
+        if (spawnManager != null)
+        {
+            spawnManager.SpawnEnemies();
+        }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        // Verificar si el objeto que ha colisionado es el jugador
         if (other.CompareTag("Player"))
         {
             PlayerTutorial player = other.GetComponent<PlayerTutorial>();
 
             if (player != null)
             {
-                // Activar el estado "atrapado" en el jugador
                 player.StartCaughtState();
                 Debug.Log("El jugador ha colisionado con el muro y ha sido atrapado.");
             }
 
-            // Ocultar la segunda imagen al colisionar
             if (tutorialUIController != null)
             {
                 tutorialUIController.OcultarSegundaImagen();
             }
 
-            // Destruir el muro después de colisionar
+            // Invocar spawn de enemigos
+            if (spawnManager != null)
+            {
+                spawnManager.SpawnEnemies();
+            }
+
             Destroy(gameObject);
         }
+    }
+
+    private void DestroyWall()
+    {
+        Destroy(gameObject);
     }
 }

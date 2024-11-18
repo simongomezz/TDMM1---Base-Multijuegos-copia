@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI;  // Necesitamos este espacio de nombres para trabajar con imágenes
+using UnityEngine.UI;
 
 public class BrazaletetUI : MonoBehaviour
 {

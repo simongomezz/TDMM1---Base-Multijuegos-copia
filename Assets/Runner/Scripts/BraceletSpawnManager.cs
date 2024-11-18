@@ -41,6 +41,6 @@ public class BraceletSpawnManager : MonoBehaviour
         // Generar una posición Z aleatoria dentro de los límites especificados
         float zPosition = playerScript.transform.position.z + Random.Range(minSpawnDistanceZ, maxSpawnDistanceZ);
 
-        return new Vector3(xPosition, -1.5f, zPosition); // Y fijo en -1.5 (suelo)
+        return new Vector3(xPosition, -0.8f, zPosition);
     }
 }

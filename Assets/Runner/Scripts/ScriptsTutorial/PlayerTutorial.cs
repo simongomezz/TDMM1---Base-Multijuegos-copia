@@ -16,10 +16,9 @@ public class PlayerTutorial : MonoBehaviour
     [Header("Estado de atrapamiento")]
     public bool isCaught = false;
     private int keyPressCount = 0;
-    private float releaseTimeLimit = 3.0f;
-    private float releaseTimer;
-    private int requiredKeyPresses = 3;
+    private int requiredKeyPresses = 3; // Cantidad necesaria de pulsaciones para escapar
     public TextMeshProUGUI caughtText;
+    public int escenajuego;
 
     [Header("Control de UI")]
     private TutorialUIController tutorialUIController;
@@ -53,7 +52,10 @@ public class PlayerTutorial : MonoBehaviour
 
     private void MoveForward()
     {
-        transform.Translate(Vector3.forward * speed * Time.deltaTime);
+        if (!TutorialWall.isPaused) // Solo avanzar si el juego no está en pausa
+        {
+            transform.Translate(Vector3.forward * speed * Time.deltaTime);
+        }
     }
 
     private void HandleLaneChange()
@@ -104,35 +106,28 @@ public class PlayerTutorial : MonoBehaviour
         }
     }
 
-public void StartCaughtState()
-{
-    isCaught = true;
-    keyPressCount = 0;
-    releaseTimer = releaseTimeLimit;
-
-    if (caughtText != null)
+    public void StartCaughtState()
     {
-        caughtText.gameObject.SetActive(true);
-        caughtText.text = $"¡Estás atrapado! Presiona E {requiredKeyPresses - keyPressCount} veces para liberarte.";
+        isCaught = true;
+        keyPressCount = 0;
+
+        if (caughtText != null)
+        {
+            caughtText.gameObject.SetActive(true);
+            caughtText.text = $"¡Estás atrapado! Presiona E {requiredKeyPresses - keyPressCount} veces para liberarte.";
+        }
+
+        if (tutorialUIController != null)
+        {
+            tutorialUIController.MostrarAtrapadoImagen();
+            tutorialUIController.OcultarSegundaImagen();
+        }
+
+        Debug.Log("¡Estás atrapado! Presiona E para liberarte.");
     }
-
-    if (tutorialUIController != null)
-    {
-        // Mostrar la imagen de atrapado en el tutorial
-        tutorialUIController.MostrarAtrapadoImagen();
-
-        // Ocultar la segunda imagen si aún está activa
-        tutorialUIController.OcultarSegundaImagen();
-    }
-
-    Debug.Log("¡Estás atrapado! Presiona E para liberarte.");
-}
-
 
     private void HandleCaughtState()
     {
-        releaseTimer -= Time.deltaTime;
-
         if (Input.GetKeyDown(KeyCode.E))
         {
             keyPressCount++;
@@ -148,16 +143,12 @@ public void StartCaughtState()
         {
             ReleasePlayer();
         }
-        else if (releaseTimer <= 0)
-        {
-            LoseGame();
-        }
     }
 
     private void ReleasePlayer()
     {
-    isCaught = false;
-    keyPressCount = 0;
+        isCaught = false;
+        keyPressCount = 0;
 
         if (caughtText != null)
         {
@@ -166,23 +157,17 @@ public void StartCaughtState()
 
         if (tutorialUIController != null)
         {
-            // Ocultar la imagen de atrapado cuando se libera
             tutorialUIController.OcultarAtrapadoImagen();
         }
+
         Debug.Log("¡Te has liberado!");
+
+        StartCoroutine(PostReleaseAction());
     }
 
-    private void LoseGame()
+    private System.Collections.IEnumerator PostReleaseAction()
     {
-        Debug.Log("Perdiste el juego porque no te liberaste a tiempo.");
-        SceneManager.LoadScene("Perdiste");
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Wall"))
-        {
-            StartCaughtState();
-        }
+        yield return new WaitForSeconds(5f);  // Espera antes de realizar la acción post-liberación
+        SceneManager.LoadScene(1);  // Carga la nueva escena
     }
 }
