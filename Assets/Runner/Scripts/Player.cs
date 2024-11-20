@@ -39,16 +39,18 @@ public class Player : MonoBehaviour
     private int requiredKeyPresses = 3;
     public TextMeshProUGUI caughtText;
 
-    // movimiento entre carriles
+    // Movimiento entre carriles
     public float carrilIzquierdo;
     public float carrilCentro;
     public float carrilDerecho;
     private int carrilActual = 1;
     public bool primerCambioCarril = false;
 
-    // Variables para el AirMouse
-    private Vector3 previousMousePosition;
-    public float liberationThreshold = 40.0f; // Umbral de distancia de movimiento para liberar al jugador
+    // Referencia al AirMouseDetection
+    public AirMouseDetection airMouseDetection;
+
+    // Referencia al script MultiSenseOSCReceiver
+    public MultiSenseOSCReceiver oscReceiver; // Asegúrate de asignarlo en el Inspector
 
     private void Start()
     {
@@ -63,9 +65,6 @@ public class Player : MonoBehaviour
         if (inmunityText != null) inmunityText.gameObject.SetActive(false);
         if (caughtText != null) caughtText.gameObject.SetActive(false);
         if (inmunityImage != null) inmunityImage.gameObject.SetActive(false); // Asegurarse de que la imagen está desactivada al inicio
-
-        // Inicializar la posición del AirMouse
-        previousMousePosition = Input.mousePosition;
     }
 
     private void Update()
@@ -73,16 +72,25 @@ public class Player : MonoBehaviour
         if (isCaught)
         {
             HandleCaughtState();
+
+            // Obtener los valores del acelerómetro del script MultiSenseOSCReceiver
+            float accelX = oscReceiver.accelX; // Aceleración en X
+            float accelY = oscReceiver.accelY; // Aceleración en Y
+            float accelZ = oscReceiver.accelZ; // Aceleración en Z
+
+            // Establecer un umbral de aceleración para detectar un movimiento significativo
+            float threshold = 60.0f; // Puedes ajustar este valor según lo que consideres "movimiento fuerte"
+
+            // Si el valor absoluto de la aceleración excede el umbral, liberamos al jugador
+            if (Mathf.Abs(accelX) > threshold || Mathf.Abs(accelY) > threshold || Mathf.Abs(accelZ) > threshold)
+            {
+                ReleasePlayer(); // Liberar al jugador
+            }
         }
         else
         {
             Movement();
-        }
-
-        // Comprobar si el AirMouse se ha movido significativamente
-        if (DetectMouseMovement())
-        {
-            ReleasePlayer(); // Llamamos correctamente a ReleasePlayer() si la distancia del mouse es suficiente
+            // Lógica de movimiento del jugador...
         }
     }
 
@@ -118,10 +126,6 @@ public class Player : MonoBehaviour
                 canMoveForward = false;
                 Debug.Log("El jugador ha alcanzado la pared y se detuvo.");
             }
-        }
-        else if (!canMoveForward && Input.GetKeyDown(KeyCode.Space))
-        {
-            BreakWall();
         }
     }
 
@@ -163,24 +167,10 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void BreakWall()
-    {
-        WallObstacle wall = FindFirstObjectByType<WallObstacle>();
-        if (wall != null)
-        {
-            wall.BreakWall();
-            canMoveForward = true;
-            Debug.Log("Pared rota, el jugador puede avanzar.");
-        }
-        else
-        {
-            Debug.LogWarning("No se encontró la pared en la escena.");
-        }
-    }
-
     private void HandleCaughtState()
     {
         releaseTimer -= Time.deltaTime;
+
         if (Input.GetKeyDown(KeyCode.E))
         {
             keyPressCount++;
@@ -188,10 +178,10 @@ public class Player : MonoBehaviour
         }
 
         caughtText.text = $"¡Estás atrapado! Presiona E {requiredKeyPresses - keyPressCount} veces más";
-        
+
         if (keyPressCount >= requiredKeyPresses)
         {
-            ReleasePlayer(); // Esta es la misma función que se llama cuando se presiona E
+            ReleasePlayer(); // Liberar con la tecla E
         }
         else if (releaseTimer <= 0)
         {
@@ -208,8 +198,6 @@ public class Player : MonoBehaviour
         {
             caughtText.gameObject.SetActive(false);
         }
-
-        Debug.Log("¡Te has liberado con el AirMouse!");
     }
 
     private void LoseGame()
@@ -306,20 +294,5 @@ public class Player : MonoBehaviour
         {
             transform.position = new Vector3(-limitX, transform.position.y);
         }
-    }
-
-    bool DetectMouseMovement()
-    {
-        Vector3 currentMousePosition = Input.mousePosition;
-        float distanceMoved = Vector3.Distance(previousMousePosition, currentMousePosition);
-
-        Debug.Log("El ratón se movió. Distancia: " + distanceMoved);
-
-        if (distanceMoved > liberationThreshold)
-        {
-            previousMousePosition = currentMousePosition;
-            return true;
-        }
-        return false;
     }
 }

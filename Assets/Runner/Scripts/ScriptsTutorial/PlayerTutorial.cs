@@ -25,7 +25,10 @@ public class PlayerTutorial : MonoBehaviour
 
     private TutorialSpawnManager spawnManager;
 
-    void Start()
+    // Referencia al script MultiSenseOSCReceiver
+    public MultiSenseOSCReceiver oscReceiver; // Asignar en el Inspector
+
+    private void Start()
     {
         carrilCentro = transform.position.x;
         carrilIzquierdo = carrilCentro - carrilOffset;
@@ -37,11 +40,25 @@ public class PlayerTutorial : MonoBehaviour
         if (caughtText != null) caughtText.gameObject.SetActive(false);
     }
 
-    void Update()
+    private void Update()
     {
         if (isCaught)
         {
             HandleCaughtState();
+
+            // Obtener valores del acelerómetro desde el script MultiSenseOSCReceiver
+            float accelX = oscReceiver.accelX;
+            float accelY = oscReceiver.accelY;
+            float accelZ = oscReceiver.accelZ;
+
+            // Umbral para detectar movimiento significativo
+            float threshold = 60.0f;
+
+            // Liberar al jugador si el movimiento del celular supera el umbral
+            if (Mathf.Abs(accelX) > threshold || Mathf.Abs(accelY) > threshold || Mathf.Abs(accelZ) > threshold)
+            {
+                ReleasePlayer();
+            }
         }
         else
         {

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 465302679133366824}
   - component: {fileID: 465302679133366826}
   - component: {fileID: 8416680125554686221}
+  - component: {fileID: 973892902575208322}
   m_Layer: 0
   m_Name: Enemy3D
   m_TagString: Enemy
@@ -127,3 +128,19 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &973892902575208322
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 465302679133366829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e497ac1e06495c049b05ac054f71db3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sprites:
+  - {fileID: 21300000, guid: 4c4d6f2249fabff4182c22643040745c, type: 3}
+  - {fileID: 21300000, guid: 31953446c99e49744b046d85571152af, type: 3}
+  animationSpeed: 0.3

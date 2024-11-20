@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4632839850638628350}
   - component: {fileID: 4111205741847651799}
   - component: {fileID: 614761073242348602}
+  - component: {fileID: -1012022702693129236}
   m_Layer: 0
   m_Name: Circle 1
   m_TagString: Untagged
@@ -78,7 +79,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 50f70a59326c865448bd7c28ace2ecb9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -123,3 +124,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 3
+--- !u!114 &-1012022702693129236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 430506196291238162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e497ac1e06495c049b05ac054f71db3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sprites:
+  - {fileID: 21300000, guid: 4c4d6f2249fabff4182c22643040745c, type: 3}
+  - {fileID: 21300000, guid: 31953446c99e49744b046d85571152af, type: 3}
+  animationSpeed: 0.5

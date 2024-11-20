@@ -2,32 +2,52 @@ using UnityEngine;
 
 public class AirMouseDetection : MonoBehaviour
 {
-    // Esta variable almacenará la posición anterior del ratón
     private Vector3 previousMousePosition;
+    public float significantMovementThreshold = 1f; // Distancia mínima para detectar un movimiento significativo
+
+    private bool significantMovementDetected = false;
+    private float cooldownTime = 1f; // Tiempo de enfriamiento en segundos
+    private float cooldownTimer = 0f; // Temporizador interno
 
     void Start()
     {
-        // Al iniciar, guardamos la posición inicial del ratón
         previousMousePosition = Input.mousePosition;
     }
 
     void Update()
     {
-        // Obtenemos la posición actual del ratón
-        Vector3 currentMousePosition = Input.mousePosition;
-
-        // Imprimimos la posición del ratón en la consola
-        Debug.Log("Posición del AirMouse: " + currentMousePosition);
-
-        // Verificamos si el ratón se ha movido
-        if (currentMousePosition != previousMousePosition)
+        // Si está en enfriamiento, incrementa el temporizador
+        if (significantMovementDetected)
         {
-            // Si el ratón se ha movido, imprimimos la distancia recorrida
+            cooldownTimer += Time.deltaTime;
+            if (cooldownTimer >= cooldownTime)
+            {
+                // Reinicia el estado y permite detectar nuevamente
+                significantMovementDetected = false;
+                cooldownTimer = 0f;
+            }
+        }
+        else
+        {
+            // Detecta movimiento significativo si no está en enfriamiento
+            Vector3 currentMousePosition = Input.mousePosition;
             float distanceMoved = Vector3.Distance(previousMousePosition, currentMousePosition);
-            Debug.Log("El ratón se movió. Distancia: " + distanceMoved);
 
-            // Actualizamos la posición previa
+            if (distanceMoved > significantMovementThreshold)
+            {
+                significantMovementDetected = true;
+                Debug.Log("Movimiento significativo detectado: " + distanceMoved);
+            }
+
+            // Actualiza la posición previa del mouse
             previousMousePosition = currentMousePosition;
         }
+    }
+
+    public bool IsSignificantMovement()
+    {
+        // Retorna verdadero solo si hay un movimiento significativo detectado y no está en enfriamiento
+        Debug.Log("IsSignificantMovement llamado. Estado actual: " + significantMovementDetected);
+        return significantMovementDetected;
     }
 }

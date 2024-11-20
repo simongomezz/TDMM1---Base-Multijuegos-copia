@@ -12,6 +12,8 @@ public class WallObstacle : MonoBehaviour
     private float timeSinceLastHit = 0f;  // Tiempo acumulado desde el último golpe
     private float maxTimeWithoutBreaking = 10f;  // Tiempo límite de 10 segundos sin romper la pared
 
+    private AirMouseDetection airMouseDetection; // Referencia al AirMouseDetection
+
     private void Start()
     {
         // Encuentra el script de configuración general al iniciar
@@ -20,6 +22,13 @@ public class WallObstacle : MonoBehaviour
         if (config == null)
         {
             Debug.LogError("ConfiguracionGeneral no encontrado.");
+        }
+
+        // Encuentra el script de AirMouseDetection
+        airMouseDetection = Object.FindFirstObjectByType<AirMouseDetection>();
+        if (airMouseDetection == null)
+        {
+            Debug.LogError("AirMouseDetection no encontrado.");
         }
     }
 
@@ -38,33 +47,37 @@ public class WallObstacle : MonoBehaviour
                 requiredHitsSet = true;
             }
 
-            // Detecta si se ha presionado la barra espaciadora para golpear el muro
-            if (Input.GetKeyDown(KeyCode.Space) && requiredHitsSet)
+            // Detecta si se ha presionado la barra espaciadora o si hay un movimiento significativo del Air Mouse
+            if (requiredHitsSet)
             {
-                currentHits++;
-                timeSinceLastHit = 0f;  // Reinicia el temporizador al recibir un golpe
-                Debug.Log("Golpe recibido. Total de golpes realizados: " + currentHits);
-
-                if (currentHits >= requiredHits)
+                if (Input.GetKeyDown(KeyCode.Space) || 
+                    (airMouseDetection != null && airMouseDetection.IsSignificantMovement()))
                 {
-                    BreakWall();
+                    currentHits++;
+                    timeSinceLastHit = 0f;  // Reinicia el temporizador al recibir un golpe
+                    Debug.Log("Golpe recibido. Total de golpes realizados: " + currentHits);
+
+                    if (currentHits >= requiredHits)
+                    {
+                        BreakWall();
+                    }
+                    else
+                    {
+                        Debug.Log("Golpes restantes para romper la pared: " + (requiredHits - currentHits));
+                    }
                 }
                 else
                 {
-                    Debug.Log("Golpes restantes para romper la pared: " + (requiredHits - currentHits));
-                }
-            }
-            else if (requiredHitsSet)
-            {
-                // Incrementa el temporizador si no se está golpeando la pared
-                timeSinceLastHit += Time.deltaTime;
-                
-                // Si el jugador excede el tiempo sin romper la pared, lo atrapa
-                if (timeSinceLastHit >= maxTimeWithoutBreaking)
-                {
-                    player.StartCaughtState();  // Activa el estado atrapado en el jugador
-                    Debug.Log("El jugador ha sido atrapado por permanecer demasiado tiempo frente a la pared.");
-                    timeSinceLastHit = 0f;  // Reinicia el temporizador para evitar múltiples capturas
+                    // Incrementa el temporizador si no se está golpeando la pared
+                    timeSinceLastHit += Time.deltaTime;
+
+                    // Si el jugador excede el tiempo sin romper la pared, lo atrapa
+                    if (timeSinceLastHit >= maxTimeWithoutBreaking)
+                    {
+                        player.StartCaughtState();  // Activa el estado atrapado en el jugador
+                        Debug.Log("El jugador ha sido atrapado por permanecer demasiado tiempo frente a la pared.");
+                        timeSinceLastHit = 0f;  // Reinicia el temporizador para evitar múltiples capturas
+                    }
                 }
             }
         }

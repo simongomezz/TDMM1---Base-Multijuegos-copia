@@ -11,6 +11,9 @@ public class BreakableWall : MonoBehaviour
     private TutorialSpawnManager spawnManager; // Referencia al TutorialSpawnManager
     private TutorialUIController tutorialUIController;
 
+    // Referencia al AirMouseDetection
+    private AirMouseDetection airMouseDetection;
+
     private void Start()
     {
         // Buscar el script de configuración general
@@ -25,6 +28,9 @@ public class BreakableWall : MonoBehaviour
 
         // Buscar el TutorialUIController usando el método actualizado
         tutorialUIController = Object.FindAnyObjectByType<TutorialUIController>();
+
+        // Obtener la referencia al script AirMouseDetection
+        airMouseDetection = GameObject.FindFirstObjectByType<AirMouseDetection>();
     }
 
     private void Update()
@@ -33,6 +39,12 @@ public class BreakableWall : MonoBehaviour
 
         // Opción para romper el muro con barra espaciadora
         if (Input.GetKeyDown(KeyCode.Space) && IsPlayerNearby())
+        {
+            BreakWall();
+        }
+
+        // Opción para romper el muro con un movimiento significativo del Air Mouse
+        if (airMouseDetection != null && airMouseDetection.IsSignificantMovement() && IsPlayerNearby())
         {
             BreakWall();
         }
@@ -78,7 +90,7 @@ public class BreakableWall : MonoBehaviour
     private void BreakWall()
     {
         Destroy(gameObject);
-        Debug.Log("El jugador ha roto el muro manualmente.");
+        Debug.Log("El muro ha sido roto.");
 
         if (tutorialUIController != null)
         {

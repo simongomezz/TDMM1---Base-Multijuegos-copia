@@ -16,6 +16,9 @@ public class TutorialWall : MonoBehaviour
 
     private GameObject player; // Referencia al jugador
 
+    // Referencia al AirMouseDetection
+    private AirMouseDetection airMouseDetection;
+
     private void Start()
     {
         // Buscar el script de configuración general
@@ -33,6 +36,9 @@ public class TutorialWall : MonoBehaviour
 
         // Encontrar el jugador
         player = GameObject.FindWithTag("Player");
+
+        // Obtener la referencia al script AirMouseDetection
+        airMouseDetection = GameObject.FindFirstObjectByType<AirMouseDetection>();
     }
 
     private void Update()
@@ -46,6 +52,12 @@ public class TutorialWall : MonoBehaviour
 
         // Opción para romper el muro con barra espaciadora
         if (Input.GetKeyDown(KeyCode.Space) && IsPlayerNearby())
+        {
+            BreakWall();
+        }
+
+        // Opción para romper el muro con un movimiento significativo del Air Mouse
+        if (airMouseDetection != null && airMouseDetection.IsSignificantMovement() && IsPlayerNearby())
         {
             BreakWall();
         }
